@@ -3,8 +3,8 @@ import random
 from game import Directions
 
 class PacmanProblem:
-    def __init__(self, layout_file):
-        self.layout, self.pacman_position, self.food_positions, self.corners = self.parse_layout(layout_file)
+    def __init__(self, layout_str):
+        self.layout, self.pacman_position, self.food_positions, self.corners = self.parse_layout_from_string(layout_str)
 
     def get_start_state(self):
         return (self.pacman_position, tuple(), tuple(self.corners))
@@ -34,27 +34,29 @@ class PacmanProblem:
     def is_goal_state(self, state):
         return len(state[1]) == len(self.food_positions) and len(state[2]) == len(self.corners)
 
-    def parse_layout(self, layout_file):
+    def parse_layout_from_string(self, layout_str):
         layout = []
         pacman_position = None
         food_positions = []
         corners = []
 
-        with open(layout_file, 'r') as file:
-            for row_idx, line in enumerate(file):
-                row = list(line.strip())
-                for col_idx, char in enumerate(row):
-                    if char == 'P':
-                        pacman_position = (row_idx, col_idx)
-                    elif char == '.':
-                        food_positions.append((row_idx, col_idx))
-                    elif char == '%':
-                        # Wall
-                        pass
-                    # Add other conditions as needed
-                layout.append(row)
+        # Loại bỏ các dòng không cần thiết trước và sau layout
+        # và loại bỏ bất kỳ dòng nào chứa "Score:"
+        cleaned_lines = [line for line in layout_str.splitlines() if line.strip() and "Score:" not in line]
 
-        # Determine corners
+        for row_idx, line in enumerate(cleaned_lines):
+            row = list(line.strip())
+            for col_idx, char in enumerate(row):
+                if char == 'P' or char == '<' or char == '^' or char == '>' or char == 'v':
+                    pacman_position = (row_idx, col_idx)
+                elif char == '.':
+                    food_positions.append((row_idx, col_idx))
+                elif char == '%':
+                    # Wall
+                    pass
+            layout.append(row)
+
+        # Xác định các góc
         layout_height, layout_width = len(layout), len(layout[0])
         corners = [(0, 0), (0, layout_width - 1), (layout_height - 1, 0), (layout_height - 1, layout_width - 1)]
 
@@ -130,9 +132,9 @@ class SearchStrategies:
 if __name__ == "__main__":
     # Read input
     layout_file = "layouts/smallMaze.lay"
-
-    # Initialize the problem
-    pacman_problem = PacmanProblem(layout_file)
+    with open(layout_file, 'r') as file:
+        # Initialize the problem
+        pacman_problem = PacmanProblem(file.read())
 
     # Run BFS
     bfs_result = SearchStrategies.bfs_search(pacman_problem)
