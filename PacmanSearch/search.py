@@ -75,7 +75,7 @@ class PacmanProblem:
         elif action == 'South':
             return (x + 1, y)
         return current_pos
-    
+
 class SearchStrategies:
     def EuclidDistanceHeuristic(self, state, problem):
         pacman_position, food_collected, corners_visited = state  # Adjusted to unpack all three elements
@@ -169,6 +169,38 @@ class SearchStrategies:
 
         return []
 
+    def ucs_search(self, problem):
+        frontier = util.PriorityQueue()
+        explored = set()
+
+        # Start with the initial state. The priority is the cost so far, which is 0 for the start state.
+        initial_state = problem.get_start_state()
+        frontier.push((initial_state, [], 0), 0)  # (state, actions, cost), priority
+
+        while not frontier.isEmpty():
+            current_state, actions, current_cost = frontier.pop()
+
+            # Check if we have already explored this state
+            if current_state in explored:
+                continue
+
+            # Check if current state is the goal state
+            if problem.is_goal_state(current_state):
+                return self.simplify_actions(actions)
+
+            explored.add(current_state)
+
+            for action in problem.get_actions(current_state):
+                successor, cost = problem.get_successor(current_state, action), problem.get_cost_of_actions(
+                    actions + [action])
+                if successor not in explored:
+                    # Add successor to the frontier with the updated cost
+                    new_actions = actions + [action]
+                    new_cost = current_cost + cost
+                    frontier.update((successor, new_actions, new_cost), new_cost)
+
+        return []
+
 
 
 if __name__ == "__main__":
@@ -179,16 +211,19 @@ if __name__ == "__main__":
         pacman_problem = PacmanProblem(file.read())
 
     searchStratergy = SearchStrategies()
-    # Run BFS
+
     bfs_result = searchStratergy.bfs_search(pacman_problem)
+    ucs_result = searchStratergy.ucs_search(pacman_problem)
+    a_star_result = searchStratergy.a_star_search(pacman_problem, None)
+
     print("BFS Result:")
     print("Testing 1 run:", bfs_result)
     print("Total cost:", len(bfs_result))
     print()
-
-    # Run A* with a heuristic function
-    heuristic_function = None  # Replace with your heuristic function if needed
-    a_star_result = searchStratergy.a_star_search(pacman_problem, heuristic_function)
+    print("UCS Result:")
+    print("Testing 1 run:", ucs_result)
+    print("Total cost:", len(ucs_result))
+    print()
     print("A* Result:")
     print("Testing 1 run:", a_star_result)
     print("Total cost:", len(a_star_result))

@@ -84,6 +84,10 @@ class BFSAgent(SearchAgent):
     def __init__(self):
         super().__init__(searchFunction=SearchStrategies().bfs_search)
 
+class UCSAgent(SearchAgent):
+    def __init__(self):
+        super().__init__(searchFunction=SearchStrategies().ucs_search)
+
 class AStarAgent(SearchAgent):
     def __init__(self):
         super().__init__(searchFunction=lambda problem: SearchStrategies().a_star_search(problem, SearchStrategies().EuclidDistanceHeuristic))
