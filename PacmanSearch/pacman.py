@@ -1,3 +1,5 @@
+# user commented line: 101 and 295
+
 # pacman.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -96,7 +98,7 @@ class GameState:
         Returns the successor state after the specified agent takes the action.
         """
         # Check that successors exist
-        if self.isWin() or self.isLose(): raise Exception('Can\'t generate a successor of a terminal state.')
+        # if self.isWin() or self.isLose(): raise Exception('Can\'t generate a successor of a terminal state.')
 
         # Copy current state
         state = GameState(self)
@@ -289,8 +291,9 @@ class ClassicGameRules:
         if state.isLose(): self.lose(state, game)
 
     def win( self, state, game ):
-        # if not self.quiet: print("Pacman emerges victorious! Score: %d" % state.data.score)
-        game.gameOver = True
+        if not self.quiet: print("Pacman emerges victorious! Score: %d" % state.data.score)
+        # game.gameOver = True
+
 
     def lose( self, state, game ):
         # if not self.quiet: print("Pacman died! Score: %d" % state.data.score)

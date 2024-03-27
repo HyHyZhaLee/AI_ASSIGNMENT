@@ -1,7 +1,5 @@
 import util
-import random
-from game import Directions
-
+import math
 class PacmanProblem:
     def __init__(self, layout_str):
         self.layout, self.pacman_position, self.food_positions, self.corners = self.parse_layout_from_string(layout_str)
@@ -30,6 +28,10 @@ class PacmanProblem:
         if new_pacman_pos in self.corners:
             corners_visited += (new_pacman_pos,)
         return (new_pacman_pos, food_collected, corners_visited)
+
+    def get_cost_of_actions(self, actions):
+        # If every action has a cost of 1, then the total cost is just the number of actions
+        return len(actions)
 
     def is_goal_state(self, state):
         return len(state[1]) == len(self.food_positions) and len(state[2]) == len(self.corners)
@@ -73,22 +75,59 @@ class PacmanProblem:
         elif action == 'South':
             return (x + 1, y)
         return current_pos
-
+    
 class SearchStrategies:
-    @staticmethod
-    def bfs_search(problem):
+    def EuclidDistanceHeuristic(self, state, problem):
+        pacman_position, food_collected, corners_visited = state  # Adjusted to unpack all three elements
+        food_positions = problem.food_positions  # Assuming you want to compare to all food positions
+
+        # Exclude food that's already been collected if that's what you intend
+        remaining_food_positions = [food for food in food_positions if food not in food_collected]
+
+        if not remaining_food_positions:
+            return 0
+
+        # Calculate the Euclidean distance to each remaining food dot
+        distances = [
+            math.sqrt((pacman_position[0] - food[0]) ** 2 + (pacman_position[1] - food[1]) ** 2)
+            for food in remaining_food_positions
+        ]
+
+        # Return the minimum distance to the closest food dot
+        return min(distances)
+
+    def simplify_actions(self, actions):
+        simplified_actions = []
+        i = 0
+        while i < len(actions):
+            if i + 1 < len(actions):
+                current_action = actions[i]
+                next_action = actions[i + 1]
+                # Check for opposite actions
+                if (current_action == 'East' and next_action == 'West') or (
+                        current_action == 'West' and next_action == 'East') or (
+                        current_action == 'North' and next_action == 'South') or (
+                        current_action == 'South' and next_action == 'North'):
+                    i += 2  # Skip the next action
+                    continue
+            simplified_actions.append(actions[i])
+            i += 1
+        return simplified_actions
+
+    def bfs_search(self, problem):
         frontier = util.Queue()
         explored = set()
 
         # Add the initial state to the frontier
         initial_state = problem.get_start_state()
+
         frontier.push((initial_state, []))
 
         while not frontier.isEmpty():
             current_state, actions = frontier.pop()
 
             if problem.is_goal_state(current_state):
-                return actions
+                return self.simplify_actions(actions)
 
             if current_state not in explored:
                 explored.add(current_state)
@@ -100,21 +139,22 @@ class SearchStrategies:
 
         return []
 
-    @staticmethod
-    def a_star_search(problem, heuristic=None):
+    def a_star_search(self, problem, heuristic=None):
+        if heuristic is None:
+            heuristic = self.EuclidDistanceHeuristic
         frontier = util.PriorityQueue()
         explored = set()
 
-        # Add the initial state to the frontier with priority based on heuristic
+        # Add the initial state to the frontier with a priority of zero
         initial_state = problem.get_start_state()
-        priority = 0 if heuristic is None else heuristic(initial_state)
-        frontier.push((initial_state, []), priority)
+        # Pass both the state and the problem to the heuristic function
+        frontier.push((initial_state, []), heuristic(initial_state, problem))
 
         while not frontier.isEmpty():
             current_state, actions = frontier.pop()
 
             if problem.is_goal_state(current_state):
-                return actions
+                return self.simplify_actions(actions)
 
             if current_state not in explored:
                 explored.add(current_state)
@@ -122,11 +162,13 @@ class SearchStrategies:
                 for action in problem.get_actions(current_state):
                     successor = problem.get_successor(current_state, action)
                     new_actions = actions + [action]
-                    cost = len(new_actions)
-                    priority = cost + (0 if heuristic is None else heuristic(successor))
+                    # Unlike BFS, in A* the priority is the current cost plus the heuristic estimate
+                    # Again, pass both the successor state and the problem to the heuristic function
+                    priority = problem.get_cost_of_actions(new_actions) + heuristic(successor, problem)
                     frontier.push((successor, new_actions), priority)
 
         return []
+
 
 
 if __name__ == "__main__":
@@ -136,16 +178,17 @@ if __name__ == "__main__":
         # Initialize the problem
         pacman_problem = PacmanProblem(file.read())
 
+    searchStratergy = SearchStrategies()
     # Run BFS
-    bfs_result = SearchStrategies.bfs_search(pacman_problem)
+    bfs_result = searchStratergy.bfs_search(pacman_problem)
     print("BFS Result:")
-    print("List of actions:", bfs_result)
+    print("Testing 1 run:", bfs_result)
     print("Total cost:", len(bfs_result))
     print()
 
     # Run A* with a heuristic function
     heuristic_function = None  # Replace with your heuristic function if needed
-    a_star_result = SearchStrategies.a_star_search(pacman_problem, heuristic_function)
+    a_star_result = searchStratergy.a_star_search(pacman_problem, heuristic_function)
     print("A* Result:")
-    print("List of actions:", a_star_result)
+    print("Testing 1 run:", a_star_result)
     print("Total cost:", len(a_star_result))

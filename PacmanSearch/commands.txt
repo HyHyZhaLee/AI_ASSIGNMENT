@@ -1,3 +1,10 @@
+Example:
 python -B pacman.py
 python -B pacman.py --layout smallMaze --pacman GoWestAgent --zoom 1
 python -B pacman.py -l smallMaze -p GoWestAgent -z 1
+
+Run the game:
+AStar:
+python pacman.py -l smallMaze -p AStarAgent
+python pacman.py -l mediumMaze -p AStarAgent
+python pacman.py -l bigMaze -p AStarAgent --zoom 0.5
