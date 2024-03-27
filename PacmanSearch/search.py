@@ -1,3 +1,7 @@
+'''
+# TODO 01: Problem formulation
+Implement a class representing the problem
+'''
 import util
 import math
 class PacmanProblem:
@@ -73,6 +77,11 @@ class PacmanProblem:
             return (x + 1, y)
         return current_pos
 
+
+'''
+# TODO 02: Search strategies
+Implement a class with methods as search strategies
+'''
 class SearchStrategies:
     def simplify_actions(self, actions):
         simplified_actions = []

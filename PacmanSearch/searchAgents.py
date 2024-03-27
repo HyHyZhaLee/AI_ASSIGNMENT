@@ -1,10 +1,6 @@
 from game import Directions
 from game import Agent
-from game import Actions
-import util
-import time
 import random
-import search
 from search import *
 
 class RandomAgent(Agent):

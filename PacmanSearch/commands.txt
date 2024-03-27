@@ -12,4 +12,4 @@ python pacman.py -l bigMaze -p AStarAgent --zoom 0.5
 UCS:
 python pacman.py -l smallMaze -p UCSAgent
 python pacman.py -l mediumMaze -p UCSAgent
-python pacman.py -l bigMaze -p UCS --zoom 0.5
+python pacman.py -l bigMaze -p UCSAgent --zoom 0.5
