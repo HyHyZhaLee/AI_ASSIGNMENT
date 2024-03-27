@@ -5,6 +5,7 @@ import util
 import time
 import random
 import search
+from search import *
 
 class RandomAgent(Agent):
     def __int__(self):
@@ -23,30 +24,6 @@ Implement a subclass of Agent class.
 For each game step, getAction() method is invoked and 
 the returned action is performed.
 '''
-from search import *
-# class BFSAgent(Agent):
-#     def getAction(self, state):
-#         problem = PacmanProblem(state.__str__())
-#         searchStratergy = SearchStrategies()
-#         result = searchStratergy.bfs_search(problem)
-#         if result[0] == "East": return Directions.EAST
-#         if result[0] == "South": return Directions.SOUTH
-#         if result[0] == "West": return Directions.WEST
-#         if result[0] == "North": return Directions.NORTH
-#         return Directions.STOP
-#
-# class AStarAgent(Agent):
-#     def getAction(self, state):
-#
-#         problem = PacmanProblem(state.__str__())
-#         searchStratergy = SearchStrategies()
-#         result = searchStratergy.a_star_search(problem)
-#         if result[0] == "East": return Directions.EAST
-#         if result[0] == "South": return Directions.SOUTH
-#         if result[0] == "West": return Directions.WEST
-#         if result[0] == "North": return Directions.NORTH
-#         return Directions.STOP
-
 class SearchAgent(Agent):
 
     def __init__(self, searchFunction=None):
@@ -89,5 +66,9 @@ class UCSAgent(SearchAgent):
         super().__init__(searchFunction=SearchStrategies().ucs_search)
 
 class AStarAgent(SearchAgent):
-    def __init__(self):
-        super().__init__(searchFunction=lambda problem: SearchStrategies().a_star_search(problem, SearchStrategies().EuclidDistanceHeuristic))
+    def __init__(self, heuristic = "Manhattan"):
+        if heuristic == None or heuristic == "Euclid":
+            self.heuristic = SearchStrategies().EuclidDistanceHeuristic
+        elif heuristic == "Manhattan":
+            self.heuristic = SearchStrategies().ManhattanDistanceHeuristic
+        super().__init__(searchFunction=lambda problem: SearchStrategies().a_star_search(problem, self.heuristic))

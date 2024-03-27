@@ -42,8 +42,6 @@ class PacmanProblem:
         food_positions = []
         corners = []
 
-        # Loại bỏ các dòng không cần thiết trước và sau layout
-        # và loại bỏ bất kỳ dòng nào chứa "Score:"
         cleaned_lines = [line for line in layout_str.splitlines() if line.strip() and "Score:" not in line]
 
         for row_idx, line in enumerate(cleaned_lines):
@@ -58,7 +56,6 @@ class PacmanProblem:
                     pass
             layout.append(row)
 
-        # Xác định các góc
         layout_height, layout_width = len(layout), len(layout[0])
         corners = [(0, 0), (0, layout_width - 1), (layout_height - 1, 0), (layout_height - 1, layout_width - 1)]
 
@@ -77,6 +74,24 @@ class PacmanProblem:
         return current_pos
 
 class SearchStrategies:
+    def simplify_actions(self, actions):
+        simplified_actions = []
+        i = 0
+        while i < len(actions):
+            if i + 1 < len(actions):
+                current_action = actions[i]
+                next_action = actions[i + 1]
+                # Check for opposite actions
+                if (current_action == 'East' and next_action == 'West') or (
+                        current_action == 'West' and next_action == 'East') or (
+                        current_action == 'North' and next_action == 'South') or (
+                        current_action == 'South' and next_action == 'North'):
+                    i += 2  # Skip the next action
+                    continue
+            simplified_actions.append(actions[i])
+            i += 1
+        return simplified_actions
+
     def EuclidDistanceHeuristic(self, state, problem):
         pacman_position, food_collected, corners_visited = state  # Adjusted to unpack all three elements
         food_positions = problem.food_positions  # Assuming you want to compare to all food positions
@@ -96,48 +111,24 @@ class SearchStrategies:
         # Return the minimum distance to the closest food dot
         return min(distances)
 
-    def simplify_actions(self, actions):
-        simplified_actions = []
-        i = 0
-        while i < len(actions):
-            if i + 1 < len(actions):
-                current_action = actions[i]
-                next_action = actions[i + 1]
-                # Check for opposite actions
-                if (current_action == 'East' and next_action == 'West') or (
-                        current_action == 'West' and next_action == 'East') or (
-                        current_action == 'North' and next_action == 'South') or (
-                        current_action == 'South' and next_action == 'North'):
-                    i += 2  # Skip the next action
-                    continue
-            simplified_actions.append(actions[i])
-            i += 1
-        return simplified_actions
+    def ManhattanDistanceHeuristic(self, state, problem):
+        pacman_position, food_collected, _ = state  # No need to unpack corners_visited for Manhattan distance
+        food_positions = problem.food_positions  # Assuming you want to compare to all food positions
 
-    def bfs_search(self, problem):
-        frontier = util.Queue()
-        explored = set()
+        # Exclude food that's already been collected if that's what you intend
+        remaining_food_positions = [food for food in food_positions if food not in food_collected]
 
-        # Add the initial state to the frontier
-        initial_state = problem.get_start_state()
+        if not remaining_food_positions:
+            return 0
 
-        frontier.push((initial_state, []))
+        # Calculate the Manhattan distance to each remaining food dot
+        distances = [
+            abs(pacman_position[0] - food[0]) + abs(pacman_position[1] - food[1])
+            for food in remaining_food_positions
+        ]
 
-        while not frontier.isEmpty():
-            current_state, actions = frontier.pop()
-
-            if problem.is_goal_state(current_state):
-                return self.simplify_actions(actions)
-
-            if current_state not in explored:
-                explored.add(current_state)
-
-                for action in problem.get_actions(current_state):
-                    successor = problem.get_successor(current_state, action)
-                    new_actions = actions + [action]
-                    frontier.push((successor, new_actions))
-
-        return []
+        # Return the minimum distance to the closest food dot
+        return min(distances)
 
     def a_star_search(self, problem, heuristic=None):
         if heuristic is None:
@@ -212,14 +203,9 @@ if __name__ == "__main__":
 
     searchStratergy = SearchStrategies()
 
-    bfs_result = searchStratergy.bfs_search(pacman_problem)
     ucs_result = searchStratergy.ucs_search(pacman_problem)
     a_star_result = searchStratergy.a_star_search(pacman_problem, None)
 
-    print("BFS Result:")
-    print("Testing 1 run:", bfs_result)
-    print("Total cost:", len(bfs_result))
-    print()
     print("UCS Result:")
     print("Testing 1 run:", ucs_result)
     print("Total cost:", len(ucs_result))
