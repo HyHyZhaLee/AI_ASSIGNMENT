@@ -53,10 +53,6 @@ class SearchAgent(Agent):
 
         return nextAction
 
-class BFSAgent(SearchAgent):
-    def __init__(self):
-        super().__init__(searchFunction=SearchStrategies().bfs_search)
-
 class UCSAgent(SearchAgent):
     def __init__(self):
         super().__init__(searchFunction=SearchStrategies().ucs_search)
